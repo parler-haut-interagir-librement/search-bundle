@@ -65,7 +65,8 @@ with `phil:search:synonyms`.
 |---|---|
 | `adapter` | `dbal`, `meilisearch` or `loupe` |
 | `connection`, `meilisearch`, `loupe.directory` | Where each adapter keeps the indexes |
-| `index_entities` | Whether every entity a Doctrine flush changes is indexed |
+| `meilisearch.http_client`, `timeout`, `max_duration` | The HTTP client that calls Meilisearch, `http_client` by default, and how long a call may take: 5 seconds of wait for a byte, 10 for the whole call, by default |
+| `index_entities` | How every entity a Doctrine flush changes is indexed: `outbox`, the default with Meilisearch and Loupe, `direct`, the default with the database, or `none` |
 | `batch` | How many documents a rebuild writes at a time |
 | `synonyms.directory`, `synonyms.store`, `synonyms.rejected_forms` | Where the synonyms come from |
 | `synonyms.languages` | The languages an engine that keeps synonyms is given |

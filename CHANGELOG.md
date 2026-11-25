@@ -4,9 +4,55 @@ All notable changes to `phil/search-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## 0.3.0-alpha - 2026-11-25
+
+A behaviour change in alpha, a minor bump — with Meilisearch or Loupe, the entities are
+indexed through `phil/outbox-bundle` by default, which an application installs or replaces with `index_entities:
+direct`.
+
+### Added
+
+- Indexing through the outbox, `index_entities: outbox`: `OutboxIndexingListener` records, in the transaction of the
+  flush, each entity a provider knows that was inserted or updated, by its class and identifier, and each document of an
+  entity deleted, by its index and identifier, the records of one entity under one ordering key; `SearchOutboxCodec`
+  rebuilds them as `IndexEntity` and `RemoveDocument`, skipping a class no entity manager maps any more, and
+  `OutboxIndexer` indexes the entity as it then is, or removes the document, when `phil/outbox-bundle` relays them. A
+  flush rolled back records nothing; an engine down leaves the records to the relay, which tries again.
+
+### Added
+
+- `meilisearch.http_client`, `meilisearch.timeout` and `meilisearch.max_duration`: the HTTP client that calls
+  Meilisearch, `http_client` by default, and how long a call may take, 5 and 10 seconds by default;
+  `MeilisearchIndex::TIMEOUT` and `MAX_DURATION`, and its last two arguments, optional.
+
+### Changed
+
+- The development requirements accept `phil/ux-kit` 0.6, the minor version of its main branch and no earlier one, so
+  that the package installs on its own beside that package.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6), and of each development
+  requirement (`doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, `symfony/ux-twig-component` 3.8,
+  `php-webdriver/webdriver` 1.16, …).
+- `index_entities` is `outbox` by default with Meilisearch and Loupe, and needs `phil/outbox-bundle` on the connection
+  of the entities; `direct`, the indexing after each flush, stays an option and the default with the table of the
+  database; `none` indexes nothing. `true` is the default of the adapter, `false` is `none`. The bundle requires
+  `doctrine/persistence`.
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
+
+### Security
+
+- An index outside the database no longer receives the documents of a flush its transaction rolls back, nor misses those
+  of a flush committed while the engine was down: with `index_entities: outbox`, the default for Meilisearch and Loupe,
+  the index follows the database through the outbox.
+
+### Security
+
+- `MeilisearchIndex` called Meilisearch without a timeout: a slow server held a worker until `default_socket_timeout`,
+  60 seconds. Every call waits 5 seconds at most for a byte and lasts 10 at most by default.
+
 ## 0.2.0-alpha - 2026-11-18
 
-The next version is 0.2.0-alpha: the index and the identifier of a document compare byte by byte on MySQL and MariaDB.
+The index and the identifier of a document compare byte by byte on MySQL and MariaDB.
 See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
 
 ### Changed
